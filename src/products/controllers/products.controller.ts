@@ -1,11 +1,12 @@
-import {Body, Controller, Delete, Get, Param, Patch, Post, Put} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put } from '@nestjs/common';
 import { CreateProductDto } from '../dtos/create-product.dto';
 import { UpdateProductDto } from '../dtos/update-product.dto';
+import { PartialUpdateProductDto } from '../dtos/partial-update-product.dto'; // <-- Agregado
 import { ProductsService } from '../services/products.service';
 
-@Controller('products')
+@Controller('api/products')
 export class ProductsController {
-     constructor(private readonly service: ProductsService) {}
+  constructor(private readonly service: ProductsService) {}
 
   @Get()
   findAll() {
@@ -23,13 +24,19 @@ export class ProductsController {
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateProductDto) {
-    return this.service.update(Number(id), dto);
+  update(
+    @Param('id') id: string, // <-- Cambiado a string
+    @Body() dto: UpdateProductDto,
+  ) {
+    return this.service.update(Number(id), dto); // <-- Convertido a número
   }
 
   @Patch(':id')
-  partialUpdate(@Param('id') id: string, @Body() dto: UpdateProductDto) {
-    return this.service.partialUpdate(Number(id), dto);
+  partialUpdate(
+    @Param('id') id: string, // <-- Cambiado a string
+    @Body() dto: PartialUpdateProductDto,
+  ) {
+    return this.service.partialUpdate(Number(id), dto); // <-- Convertido a número
   }
 
   @Delete(':id')

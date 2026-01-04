@@ -1,62 +1,75 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+
 import { ProductEntity } from '../entities/product.entity';
 import { ProductMapper } from '../mappers/product.mapper';
 import { CreateProductDto } from '../dtos/create-product.dto';
 import { UpdateProductDto } from '../dtos/update-product.dto';
+import { PartialUpdateProductDto } from '../dtos/partial-update-product.dto';
+import { ProductResponseDto } from '../dtos/product-response.dto';
 
 @Injectable()
 export class ProductsService {
-  private products: ProductEntity[] = [];
-  private currentId = 1;
 
-  findAll() {{}
-    return this.products.map(p => ProductMapper.toResponse(p));
+  constructor(
+    @InjectRepository(ProductEntity)
+    private readonly productRepository: Repository<ProductEntity>,
+  ) {}
+
+  async findAll(): Promise<ProductResponseDto[]> {
+    const entities = await this.productRepository.find();
+    return entities.map(ProductMapper.toResponse);
   }
 
-  findOne(id: number) {
-    const product = this.products.find(p => p.id === id);
-    if (!product) return { error: 'Product not found' };
-    return ProductMapper.toResponse(product);
-  }
-
-  create(dto: CreateProductDto) {
-    const entity = ProductMapper.toEntity(this.currentId++, dto);
-    this.products.push(entity);
+  async findOne(id: number): Promise<ProductResponseDto> {
+    const entity = await this.productRepository.findOne({ where: { id } });
+    if (!entity) {
+      throw new NotFoundException('Producto no encontrado');
+    }
     return ProductMapper.toResponse(entity);
   }
 
-
-  update(id: number, dto: UpdateProductDto) {
-    const product = this.products.find(p => p.id === id);
-    if (!product) return { error: 'Product not found' };
-
-  
-    product.name = dto.name ?? product.name;
-    product.description = dto.description ?? product.description;
-    product.price = dto.price ?? product.price;
-    product.stock = dto.stock ?? product.stock;
-
-    return ProductMapper.toResponse(product);
+  async create(dto: CreateProductDto): Promise<ProductResponseDto> {
+    const entity = ProductMapper.toEntity(dto);
+    const saved = await this.productRepository.save(entity);
+    return ProductMapper.toResponse(saved);
   }
 
-  partialUpdate(id: number, dto: UpdateProductDto) {
-    const product = this.products.find(p => p.id === id);
-    if (!product) return { error: 'Product not found' };
+  async update(id: number, dto: UpdateProductDto): Promise<ProductResponseDto> {
+    const product = await this.productRepository.findOne({ where: { id } });
+    if (!product) {
+      throw new NotFoundException('Producto no encontrado');
+    }
 
+    product.name = dto.name;
+    product.description = dto.description;
+    product.price = dto.price;
+    product.stock = dto.stock;
+
+    const saved = await this.productRepository.save(product);
+    return ProductMapper.toResponse(saved);
+  }
+
+  async partialUpdate(id: number, dto: PartialUpdateProductDto): Promise<ProductResponseDto> {
+    const product = await this.productRepository.findOne({ where: { id } });
+    if (!product) {
+      throw new NotFoundException('Producto no encontrado');
+    }
 
     if (dto.name !== undefined) product.name = dto.name;
     if (dto.description !== undefined) product.description = dto.description;
     if (dto.price !== undefined) product.price = dto.price;
     if (dto.stock !== undefined) product.stock = dto.stock;
 
-    return ProductMapper.toResponse(product);
+    const saved = await this.productRepository.save(product);
+    return ProductMapper.toResponse(saved);
   }
 
-  delete(id: number) {
-    const exists = this.products.some(p => p.id === id);
-    if (!exists) return { error: 'Product not found' };
-
-    this.products = this.products.filter(p => p.id !== id);
-    return { message: 'Deleted successfully' };
+  async delete(id: number): Promise<void> {
+    const result = await this.productRepository.delete(id);
+    if (result.affected === 0) {
+      throw new NotFoundException('Producto no encontrado');
+    }
   }
 }
