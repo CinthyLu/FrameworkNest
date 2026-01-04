@@ -42,8 +42,11 @@ export class ProductsService {
       throw new NotFoundException('Producto no encontrado');
     }
 
-    product.name = dto.name;
-    product.description = dto.description;
+product.name = dto.name;
+if (dto.description !== undefined) {
+  product.description = dto.description;
+}
+
     product.price = dto.price;
     product.stock = dto.stock;
 

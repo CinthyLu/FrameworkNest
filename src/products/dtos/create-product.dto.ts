@@ -1,6 +1,5 @@
 import { IsNotEmpty, MinLength, IsNumber, Min, IsOptional } from 'class-validator';
 
-
 export class CreateProductDto {
 
   @IsNotEmpty({ message: 'El nombre es obligatorio' })
@@ -8,15 +7,13 @@ export class CreateProductDto {
   name: string;
 
   @IsOptional()
-  @MinLength(3, { message: 'La descripción debe tener al menos 3 caracteres' })
   description?: string;
 
-  @IsNumber({}, { message: 'El precio debe ser numerico' })
+  @IsNumber()
   @Min(0, { message: 'El precio no puede ser negativo' })
   price: number;
 
-  @IsOptional()
-  @IsNumber({}, { message: 'El stock debe ser numerico' })
+  @IsNumber()
   @Min(0, { message: 'El stock no puede ser negativo' })
-  stock?: number;
+  stock: number;
 }

@@ -62,7 +62,7 @@ Puerto: 5432->5432
 
 # **4. Configuración de TypeORM en NestJS**
 
-TypeORM se configuró en el módulo principal de la aplicación utilizando `TypeOrmModule.forRoot`, estableciendo la conexión con PostgreSQL y habilitando la detección automática de entidades persistentes.
+TypeORM se configuró en el módulo principal de la aplicación utilizando TypeOrmModule.forRoot`, estableciendo la conexión con PostgreSQL y habilitando la detección automática de entidades persistentes.
 
 Para el entorno de desarrollo se utilizó la opción `synchronize: true`, lo que permite que TypeORM cree y actualice automáticamente las tablas en la base de datos a partir de las entidades definidas en el proyecto.
 
