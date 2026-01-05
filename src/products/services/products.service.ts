@@ -1,13 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-
 import { ProductEntity } from '../entities/product.entity';
 import { ProductMapper } from '../mappers/product.mapper';
 import { CreateProductDto } from '../dtos/create-product.dto';
 import { UpdateProductDto } from '../dtos/update-product.dto';
 import { PartialUpdateProductDto } from '../dtos/partial-update-product.dto';
 import { ProductResponseDto } from '../dtos/product-response.dto';
+import { ConflictException } from '../../exceptions/domain/conflict.exception';
+
 
 @Injectable()
 export class ProductsService {
@@ -25,12 +26,18 @@ export class ProductsService {
   async findOne(id: number): Promise<ProductResponseDto> {
     const entity = await this.productRepository.findOne({ where: { id } });
     if (!entity) {
-      throw new NotFoundException('Producto no encontrado');
-    }
+  throw new NotFoundException(`Producto no encontrado con ID: ${id}`);
+}
+
     return ProductMapper.toResponse(entity);
   }
 
   async create(dto: CreateProductDto): Promise<ProductResponseDto> {
+    
+    const exists = await this.productRepository.findOne({ where: { name: dto.name } });
+    if (exists) {
+      throw new ConflictException(`Ya existe un producto con ese nombre ${dto.name}`);
+    }
     const entity = ProductMapper.toEntity(dto);
     const saved = await this.productRepository.save(entity);
     return ProductMapper.toResponse(saved);
